@@ -1,0 +1,13 @@
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Archivos de compilación o del sistema operativo
+dist/
+build/
+.DS_Store
