@@ -26,24 +26,33 @@ const registrarVisita = async (req, res) => {
             [usuario_id, lugar_id]
         );
 
-        let medallaDesbloqueada = null;
+        let medallaDesbloqueada = [];
+
+        // Helper para asignar medalla si no la tiene
+        const asignarMedalla = async (medallaId) => {
+            const [yaTiene] = await db.query(
+                'SELECT * FROM usuarios_medallas WHERE usuario_id = ? AND medalla_id = ?',
+                [usuario_id, medallaId]
+            );
+            if (yaTiene.length === 0) {
+                await db.query(
+                    'INSERT INTO usuarios_medallas (usuario_id, medalla_id) VALUES (?, ?)',
+                    [usuario_id, medallaId]
+                );
+                const [m] = await db.query('SELECT nombre FROM medallas WHERE id = ?', [medallaId]);
+                if (m.length > 0) medallaDesbloqueada.push(m[0].nombre);
+            }
+        };
 
         // LÓGICA DE GAMIFICACIÓN 1: Medalla "Explorador Novato" (1ra visita)
         const [totalVisitas] = await db.query(
             'SELECT COUNT(*) as total FROM visitas WHERE usuario_id = ?', 
             [usuario_id]
         );
+        const total = totalVisitas[0].total;
 
-        // Si esta es exactamente su primera visita en total
-        if (totalVisitas[0].total === 1) {
-            // Le otorgamos la medalla ID 1 ("Explorador Novato")
-            await db.query(
-                'INSERT INTO usuarios_medallas (usuario_id, medalla_id) VALUES (?, ?)',
-                [usuario_id, 1] 
-            );
-            
-            const [medalla] = await db.query('SELECT nombre FROM medallas WHERE id = 1');
-            if(medalla.length > 0) medallaDesbloqueada = medalla[0].nombre;
+        if (total === 1) {
+            await asignarMedalla(1); // Explorador Novato
         }
 
         // LÓGICA DE GAMIFICACIÓN 2: Medalla "Aventurero del Sur" (3 visitas en Itapúa)
@@ -54,35 +63,60 @@ const registrarVisita = async (req, res) => {
             WHERE v.usuario_id = ? AND l.departamento = 'Itapúa'
         `, [usuario_id]);
 
-        if (visitasItapua[0].total === 3) {
-            // Verificamos que no la tenga ya
-            const [yaTieneMedalla2] = await db.query(
-                'SELECT * FROM usuarios_medallas WHERE usuario_id = ? AND medalla_id = 2', 
-                [usuario_id]
-            );
-            if (yaTieneMedalla2.length === 0) {
-                await db.query(
-                    'INSERT INTO usuarios_medallas (usuario_id, medalla_id) VALUES (?, ?)',
-                    [usuario_id, 2] 
-                );
-                const [medalla2] = await db.query('SELECT nombre FROM medallas WHERE id = 2');
-                if(medallaDesbloqueada) {
-                    medallaDesbloqueada += ' y ' + medalla2[0].nombre;
-                } else {
-                    medallaDesbloqueada = medalla2[0].nombre;
-                }
-            }
+        if (visitasItapua[0].total >= 3) {
+            await asignarMedalla(2); // Aventurero del Sur
+        }
+
+        // LÓGICA DE GAMIFICACIÓN 3: Medalla "Maestro de las Cascadas" (2 o más saltos/cascadas)
+        const [visitasSaltos] = await db.query(`
+            SELECT COUNT(*) as total
+            FROM visitas v
+            JOIN lugares l ON v.lugar_id = l.id
+            WHERE v.usuario_id = ? AND (l.nombre LIKE '%Salto%' OR l.nombre LIKE '%Cascada%')
+        `, [usuario_id]);
+
+        if (visitasSaltos[0].total >= 2) {
+            await asignarMedalla(3); // Maestro de las Cascadas
+        }
+
+        // LÓGICA DE GAMIFICACIÓN 4: Medalla "Conquistador de Cimas" (Cerros)
+        const [visitasCerros] = await db.query(`
+            SELECT COUNT(*) as total
+            FROM visitas v
+            JOIN lugares l ON v.lugar_id = l.id
+            WHERE v.usuario_id = ? AND l.nombre LIKE '%Cerro%'
+        `, [usuario_id]);
+
+        if (visitasCerros[0].total >= 2) {
+            await asignarMedalla(4); // Conquistador de Cimas
+        }
+
+        // LÓGICA DE GAMIFICACIÓN 5: Medalla "Guardián del Chaco"
+        const [visitasChaco] = await db.query(`
+            SELECT COUNT(*) as total
+            FROM visitas v
+            JOIN lugares l ON v.lugar_id = l.id
+            WHERE v.usuario_id = ? AND (l.departamento = 'Boquerón' OR l.departamento = 'Alto Paraguay' OR l.departamento = 'Presidente Hayes' OR l.nombre LIKE '%Chaco%')
+        `, [usuario_id]);
+
+        if (visitasChaco[0].total >= 1) {
+            await asignarMedalla(5); // Guardián del Chaco
+        }
+
+        // LÓGICA DE GAMIFICACIÓN 6: Medalla "Gran Explorador de Paraguay" (5 o más visitas en total)
+        if (total >= 5) {
+            await asignarMedalla(7); // Gran Explorador de Paraguay
         }
 
         let mensajeExito = 'Visita registrada con éxito.';
-        if (medallaDesbloqueada) {
-            mensajeExito += ` 🎉 ¡NUEVA MEDALLA DESBLOQUEADA: ${medallaDesbloqueada}!`;
+        if (medallaDesbloqueada.length > 0) {
+            mensajeExito += ` 🎉 ¡NUEVA MEDALLA DESBLOQUEADA: ${medallaDesbloqueada.join(' y ')}!`;
         }
 
         res.status(201).json({
             mensaje: mensajeExito,
             id: result.insertId,
-            medalla_desbloqueada: medallaDesbloqueada !== null
+            medalla_desbloqueada: medallaDesbloqueada.length > 0
         });
     } catch (error) {
         console.error('Error en registrarVisita:', error);
@@ -118,7 +152,43 @@ const obtenerVisitasPorUsuario = async (req, res) => {
     }
 };
 
+// Obtener todas las medallas de un usuario con detalles visuales
+const obtenerMedallasPorUsuario = async (req, res) => {
+    try {
+        const { usuario_id } = req.params;
+
+        const [todasMedallas] = await db.query('SELECT * FROM medallas ORDER BY id ASC');
+        const [desbloqueadas] = await db.query(
+            'SELECT medalla_id, fecha_obtenida FROM usuarios_medallas WHERE usuario_id = ?',
+            [usuario_id]
+        );
+
+        const mapaDesbloqueadas = new Map();
+        desbloqueadas.forEach(d => mapaDesbloqueadas.set(d.medalla_id, d.fecha_obtenida));
+
+        const resultado = todasMedallas.map(m => ({
+            id: m.id,
+            nombre: m.nombre,
+            descripcion: m.descripcion,
+            icono_url: m.icono_url,
+            desbloqueada: mapaDesbloqueadas.has(m.id),
+            fecha_obtenida: mapaDesbloqueadas.get(m.id) || null
+        }));
+
+        res.json({
+            mensaje: 'Medallas obtenidas',
+            total: todasMedallas.length,
+            desbloqueadas_count: desbloqueadas.length,
+            datos: resultado
+        });
+    } catch (error) {
+        console.error('Error en obtenerMedallasPorUsuario:', error);
+        res.status(500).json({ mensaje: 'Error al obtener medallas' });
+    }
+};
+
 module.exports = {
     registrarVisita,
-    obtenerVisitasPorUsuario
+    obtenerVisitasPorUsuario,
+    obtenerMedallasPorUsuario
 };

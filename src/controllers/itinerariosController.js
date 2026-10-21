@@ -103,6 +103,106 @@ INSTRUCCIONES OBLIGATORIAS:
   }
 };
 
+// Guardar un itinerario para el usuario autenticado
+const guardarItinerario = async (req, res) => {
+  try {
+    const usuario_id = req.usuario.id;
+    const { titulo, resumen, departamento, dias, detalle } = req.body;
+
+    if (!titulo || !detalle) {
+      return res.status(400).json({
+        mensaje: 'Los campos "titulo" y "detalle" son obligatorios.'
+      });
+    }
+
+    const detalleJSON = typeof detalle === 'object' ? JSON.stringify(detalle) : detalle;
+
+    const [resultado] = await db.query(
+      'INSERT INTO itinerarios (usuario_id, titulo, resumen, departamento, dias, detalle) VALUES (?, ?, ?, ?, ?, ?)',
+      [usuario_id, titulo, resumen || '', departamento || null, dias || 1, detalleJSON]
+    );
+
+    return res.status(201).json({
+      mensaje: 'Itinerario guardado exitosamente.',
+      itinerario_id: resultado.insertId
+    });
+  } catch (error) {
+    console.error('Error al guardar itinerario:', error);
+    return res.status(500).json({
+      mensaje: 'Error al guardar el itinerario.',
+      error: error.message
+    });
+  }
+};
+
+// Obtener los itinerarios guardados del usuario autenticado
+const misItinerarios = async (req, res) => {
+  try {
+    const usuario_id = req.usuario.id;
+
+    const [itinerarios] = await db.query(
+      'SELECT id, titulo, resumen, departamento, dias, detalle, fecha_creacion FROM itinerarios WHERE usuario_id = ? ORDER BY fecha_creacion DESC',
+      [usuario_id]
+    );
+
+    // Parseamos el JSON para entregarlo ya estructurado
+    const formateados = itinerarios.map(it => {
+      let parsedDetalle = it.detalle;
+      if (typeof it.detalle === 'string') {
+        try {
+          parsedDetalle = JSON.parse(it.detalle);
+        } catch (e) {
+          parsedDetalle = it.detalle;
+        }
+      }
+      return {
+        ...it,
+        detalle: parsedDetalle
+      };
+    });
+
+    return res.status(200).json(formateados);
+  } catch (error) {
+    console.error('Error al obtener itinerarios:', error);
+    return res.status(500).json({
+      mensaje: 'Error al consultar los itinerarios.',
+      error: error.message
+    });
+  }
+};
+
+// Eliminar un itinerario guardado del usuario
+const eliminarItinerario = async (req, res) => {
+  try {
+    const usuario_id = req.usuario.id;
+    const { id } = req.params;
+
+    const [resultado] = await db.query(
+      'DELETE FROM itinerarios WHERE id = ? AND usuario_id = ?',
+      [id, usuario_id]
+    );
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        mensaje: 'Itinerario no encontrado o no autorizado para eliminarlo.'
+      });
+    }
+
+    return res.status(200).json({
+      mensaje: 'Itinerario eliminado correctamente.'
+    });
+  } catch (error) {
+    console.error('Error al eliminar itinerario:', error);
+    return res.status(500).json({
+      mensaje: 'Error al eliminar el itinerario.',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
-  generarItinerario
+  generarItinerario,
+  guardarItinerario,
+  misItinerarios,
+  eliminarItinerario
 };

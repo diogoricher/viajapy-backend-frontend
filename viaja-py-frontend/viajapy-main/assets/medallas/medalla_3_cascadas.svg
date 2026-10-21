@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <radialGradient id="cascada-grad" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="70%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#1e293b" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <circle cx="80" cy="80" r="70" fill="url(#cascada-grad)" filter="url(#shadow)" stroke="#172554" stroke-width="4"/>
+  <circle cx="80" cy="80" r="58" fill="#BFDBFE" stroke="#2563EB" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="80" cy="80" r="42" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <!-- Rocas laterales y cascada central -->
+  <polygon points="46,60 62,60 58,110 46,110" fill="#475569" />
+  <polygon points="98,60 114,60 114,110 102,110" fill="#475569" />
+  <!-- Caída de agua -->
+  <path d="M62,60 L98,60 L96,110 L64,110 Z" fill="#38BDF8" />
+  <path d="M68,60 L74,106" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <path d="M80,60 L80,108" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M88,60 L85,105" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <!-- Brisa/Espuma abajo -->
+  <ellipse cx="80" cy="110" rx="22" ry="6" fill="#E0F2FE" />
+</svg>

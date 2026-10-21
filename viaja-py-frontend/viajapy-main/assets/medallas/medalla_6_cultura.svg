@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <radialGradient id="cultura-grad" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#F472B6" />
+      <stop offset="70%" stop-color="#DB2777" />
+      <stop offset="100%" stop-color="#831843" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#1e293b" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <circle cx="80" cy="80" r="70" fill="url(#cultura-grad)" filter="url(#shadow)" stroke="#500724" stroke-width="4"/>
+  <circle cx="80" cy="80" r="58" fill="#FCE7F3" stroke="#DB2777" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="80" cy="80" r="42" fill="#FFFFFF" stroke="#DB2777" stroke-width="2"/>
+  <!-- Cántaro de barro de Areguá -->
+  <path d="M68,58 L92,58 L88,68 Q100,82 92,98 Q80,108 68,98 Q60,82 72,68 Z" fill="#B45309" stroke="#78350F" stroke-width="2"/>
+  <!-- Detalles ñandutí / arte -->
+  <circle cx="80" cy="84" r="6" fill="#FDE68A" stroke="#B45309" stroke-width="1.5"/>
+  <path d="M74,84 L86,84 M80,78 L80,90" stroke="#B45309" stroke-width="1.5"/>
+</svg>

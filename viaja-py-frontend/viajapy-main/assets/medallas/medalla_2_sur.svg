@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <radialGradient id="sur-grad" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="70%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#1e293b" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <circle cx="80" cy="80" r="70" fill="url(#sur-grad)" filter="url(#shadow)" stroke="#064E3B" stroke-width="4"/>
+  <circle cx="80" cy="80" r="58" fill="#A7F3D0" stroke="#059669" stroke-width="2" stroke-dasharray="4 3"/>
+  <!-- Ruinas y Sol del Sur -->
+  <circle cx="80" cy="80" r="42" fill="#FFFFFF" stroke="#059669" stroke-width="2"/>
+  <!-- Portal jesuítico estilizado -->
+  <path d="M56,108 L56,66 Q80,48 104,66 L104,108 Z" fill="#D97706" stroke="#92400E" stroke-width="2"/>
+  <path d="M68,108 L68,76 Q80,66 92,76 L92,108 Z" fill="#FEF3C7" stroke="#92400E" stroke-width="2"/>
+  <!-- Sol naciente -->
+  <circle cx="80" cy="50" r="7" fill="#FACC15" stroke="#D97706" stroke-width="1.5"/>
+</svg>

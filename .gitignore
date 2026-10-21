@@ -11,3 +11,6 @@ yarn-error.log*
 dist/
 build/
 .DS_Store
+#rol
+documentacion/rol.md
+documentacion/guia_acceso_y_endpoints.md
